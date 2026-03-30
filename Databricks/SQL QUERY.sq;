@@ -1,56 +1,113 @@
+---------------------------------------------------------------------------
+-- BRIGHT COFFEE SHOP CODING
+---------------------------------------------------------------------------
 
----Retrives the first 100 rows---
-select * from `workspace`.`default`.`bright_coffee_cons` limit 100;
-
---Provides the total sum of unit price--
-SELECT SUM(unit_price)
-FROM  `workspace`.`default`.`bright_coffee_cons`;
-
-
------sums all quanties sold---
-SELECT SUM(transaction_qty)
-FROM  `workspace`.`default`.`bright_coffee_cons`;
-
-----calculates the number of transations---
-SELECT COUNT(transaction_id)
-FROM  `workspace`.`default`.`bright_coffee_cons`;
+-- 1. RUNNING THE ENTIRE TABLE
+SELECT * 
+FROM workspace.default.bright_coffee_cons;
 
 
-----calculates average unit price--
-SELECT AVG(unit_price)
-FROM  `workspace`.`default`.`bright_coffee_cons`;
-
----calcualtes total quantity nsold per category---
-SELECT DISTINCT product_category , SUM(transaction_qty) AS Total_qty
-FROM  `workspace`.`default`.`bright_coffee_cons`
-GROUP BY product_category;
-
---calculates how many tramsations took place per each time interval--
-SELECT COUNT(transaction_qty),
-CASE
-WHEN transaction_time BETWEEN '07:00:00' AND '10:00:00' THEN 'Morning rush'
-WHEN transaction_time BETWEEN '10:00:01' AND '12:00:00' THEN 'Brunch'
-WHEN transaction_time BETWEEN '12:00:01' AND '18:00:00' THEN 'Day time'
-ELSE 'evening'
-END AS time_intervals
-FROM `workspace`.`default`.`bright_coffee_cons`
-GROUP BY time_intervals; 
-
---which iteams frequently purchased per cateory--
-SELECT DISTINCT product_category, COUNT(transaction_qty)
-FROM `workspace`.`default`.`bright_coffee_cons`
-GROUP BY product_category; 
+-- 2. CHECKING THE DATE RANGE
+SELECT 
+    MIN(transaction_date) AS Minimum_Date,
+    MAX(transaction_date) AS Maximum_Date
+FROM workspace.default.bright_coffee_cons;
 
 
---how sales change day by day--
-SELECT DATE(transaction_date) AS DAY,SUM(transaction_qty)
-FROM  `workspace`.`default`.`bright_coffee_cons`
-GROUP BY DAY
-ORDER BY DAY;
+-- 3. CHECKING DIFFERENT STORE LOCATIONS
+SELECT DISTINCT store_location
+FROM workspace.default.bright_coffee_cons;
 
---best seller--
-SELECT product_category, SUM(transaction_qty) AS total_sold
-FROM `workspace`.`default`.`bright_coffee_cons`
-GROUP BY product_category
-ORDER BY total_sold DESC
-LIMIT 10;
+
+-- 4. CHECKING PRODUCT CATEGORIES
+SELECT DISTINCT product_category
+FROM workspace.default.bright_coffee_cons;
+
+
+-- 5. CHECKING PRODUCT TYPES
+SELECT DISTINCT product_type
+FROM workspace.default.bright_coffee_cons;
+
+
+-- 6. CHECKING PRODUCT DETAILS
+SELECT DISTINCT product_detail
+FROM workspace.default.bright_coffee_cons;
+
+
+-- 7. CHECKING FOR NULL VALUES
+SELECT *
+FROM workspace.default.bright_coffee_cons
+WHERE unit_price IS NULL 
+   OR transaction_qty IS NULL 
+   OR transaction_date IS NULL;
+
+
+-- 8. CHECKING MAX AND MIN UNIT PRICE
+SELECT 
+    MIN(unit_price) AS Lowest_unit_price,
+    MAX(unit_price) AS Highest_unit_price
+FROM workspace.default.bright_coffee_cons;
+
+
+-- 9. EXTRACTING DAY AND MONTH NAMES
+SELECT 
+    transaction_date,
+    date_format(transaction_date, 'EEEE') AS Day_name,
+    date_format(transaction_date, 'MMMM') AS Month_name
+FROM workspace.default.bright_coffee_cons;
+
+
+-- 10. CALCULATING REVENUE
+SELECT 
+    unit_price,
+    transaction_qty,
+    unit_price * transaction_qty AS Revenue
+FROM workspace.default.bright_coffee_cons;
+
+
+-- 11. ENHANCED DATASET
+SELECT 
+    transaction_id,
+    transaction_date,
+    transaction_time,
+    transaction_qty, 
+    store_id,
+    store_location,
+    product_id,
+    unit_price,
+    product_category,
+    product_type,
+    product_detail,
+
+    -- Day & Month
+    date_format(transaction_date, 'EEEE') AS Day_name,
+    date_format(transaction_date, 'MMMM') AS Month_name,
+    day(transaction_date) AS Date_of_Month,
+
+    -- Weekday vs Weekend
+    CASE 
+        WHEN date_format(transaction_date, 'E') IN ('Sat', 'Sun') THEN 'Weekend'
+        ELSE 'Weekday' 
+    END AS Day_classification,
+
+    -- Time Buckets
+    CASE 
+        WHEN transaction_time BETWEEN '05:00:00' AND '08:59:59' THEN '01.Busy Hour'
+        WHEN transaction_time BETWEEN '09:00:00' AND '11:59:59' THEN '02.Mid morning'
+        WHEN transaction_time BETWEEN '12:00:00' AND '15:59:59' THEN '03.Afternoon'
+        WHEN transaction_time BETWEEN '16:00:00' AND '18:59:59' THEN '04.Last Rush'
+        ELSE '05.Night'
+    END AS Time_classification,
+
+    -- Spend Buckets
+    CASE 
+        WHEN (transaction_qty * unit_price) <= 50 THEN '01.Low spender'
+        WHEN (transaction_qty * unit_price) BETWEEN 51 AND 200 THEN '02.Medium spender'
+        WHEN (transaction_qty * unit_price) BETWEEN 201 AND 300 THEN '03.High spender'
+        ELSE '04.Premium Spender'
+    END AS Spend_bucket,
+
+    -- Revenue
+    transaction_qty * unit_price AS Revenue
+
+FROM workspace.default.bright_coffee_cons;
