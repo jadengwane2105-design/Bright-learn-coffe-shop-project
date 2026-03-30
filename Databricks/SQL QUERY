@@ -1,0 +1,56 @@
+
+---Retrives the first 100 rows---
+select * from `workspace`.`default`.`bright_coffee_cons` limit 100;
+
+--Provides the total sum of unit price--
+SELECT SUM(unit_price)
+FROM  `workspace`.`default`.`bright_coffee_cons`;
+
+
+-----sums all quanties sold---
+SELECT SUM(transaction_qty)
+FROM  `workspace`.`default`.`bright_coffee_cons`;
+
+----calculates the number of transations---
+SELECT COUNT(transaction_id)
+FROM  `workspace`.`default`.`bright_coffee_cons`;
+
+
+----calculates average unit price--
+SELECT AVG(unit_price)
+FROM  `workspace`.`default`.`bright_coffee_cons`;
+
+---calcualtes total quantity nsold per category---
+SELECT DISTINCT product_category , SUM(transaction_qty) AS Total_qty
+FROM  `workspace`.`default`.`bright_coffee_cons`
+GROUP BY product_category;
+
+--calculates how many tramsations took place per each time interval--
+SELECT COUNT(transaction_qty),
+CASE
+WHEN transaction_time BETWEEN '07:00:00' AND '10:00:00' THEN 'Morning rush'
+WHEN transaction_time BETWEEN '10:00:01' AND '12:00:00' THEN 'Brunch'
+WHEN transaction_time BETWEEN '12:00:01' AND '18:00:00' THEN 'Day time'
+ELSE 'evening'
+END AS time_intervals
+FROM `workspace`.`default`.`bright_coffee_cons`
+GROUP BY time_intervals; 
+
+--which iteams frequently purchased per cateory--
+SELECT DISTINCT product_category, COUNT(transaction_qty)
+FROM `workspace`.`default`.`bright_coffee_cons`
+GROUP BY product_category; 
+
+
+--how sales change day by day--
+SELECT DATE(transaction_date) AS DAY,SUM(transaction_qty)
+FROM  `workspace`.`default`.`bright_coffee_cons`
+GROUP BY DAY
+ORDER BY DAY;
+
+--best seller--
+SELECT product_category, SUM(transaction_qty) AS total_sold
+FROM `workspace`.`default`.`bright_coffee_cons`
+GROUP BY product_category
+ORDER BY total_sold DESC
+LIMIT 10;
